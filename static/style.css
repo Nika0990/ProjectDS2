@@ -1,0 +1,47 @@
+h1, h2, h3, h4, h5, form
+{
+font-family: "comic sans ms"; 
+color: #0c0c0c;
+font-style: italic
+}
+
+table
+{
+background-color: #d7f5fc;
+font-family: "comic sans ms"; 
+margin-left: 20pt;
+color: black; 
+text-align: left; 
+word-spacing: normal;
+}
+
+p,li,th,td
+{
+font-family: "comic sans ms"; 
+color: black; 
+text-align: left; 
+word-spacing: normal;
+}
+
+hr
+{
+color: #0c0c0c
+}
+
+
+a:link {font-family: "comic sans ms" ; color: #0c0c0c
+}
+a:visited  {color: #0c0c0c
+}
+a:active   {color:yellow}
+a:hover    {color:red}
+
+body {background-color: #ccdafc;}
+
+topleft {
+  position: absolute;
+  top: 8px;
+  left: 2%;
+  font-size: 18px;
+}
+

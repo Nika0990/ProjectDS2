@@ -1,0 +1,32 @@
+{% load static %}
+<link rel="stylesheet" href="{%  static 'style.css' %}">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<topleft>
+ <a href="index">Home</a><br>
+    <a href="query_results">Query Results</a><br>
+    <a href="records_management">Records Management</a><br>
+    <a href="rankings">Rankings</a><br>
+</topleft>
+<center>
+<h1> Query 1</h1>
+    <table border="5" width="60%">
+    <th>Genre</th>
+    <th>Title</th>
+    <th>Duration</th>
+        {% for movies in sql_res_1%}
+            <tr>
+            <td>{{movies.genre }} </td>
+            <td>{{movies.movieTitle}} </td>
+            <td>{{movies.maxDuration }} </td>
+            </tr>
+        {% endfor %}
+    </table><br>
+</center>
+</body>
+</html>
