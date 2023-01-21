@@ -27,6 +27,26 @@
             </tr>
         {% endfor %}
     </table><br>
+<h1> Query 2</h1>
+<table border="5" width="60%">
+     <th>Title</th>
+    <th>Average Rank</th>
+        {% for movies in sql_res_2%}
+            <tr>
+            <td>{{movies.title }} </td>
+            <td>{{movies.avgRank}} </td>
+            </tr>
+        {% endfor %}
+</table><br>
+<h1> Query 3</h1>
+<table border="5" width="60%">
+     <th>Title</th>
+        {% for movies in sql_res_3%}
+            <tr>
+            <td>{{movies.title }} </td>
+            </tr>
+        {% endfor %}
+</table><br>
 </center>
 </body>
 </html>
