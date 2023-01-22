@@ -18,25 +18,49 @@
 <form method="POST">
     {% csrf_token %}
 <center>
-Family ID:  <select class="form-control" name="ID" >
+<h2>Ranking</h2>
+>Family ID:  <select class="form-control" name="ID" >
             {% for family in res_1%}
                 <option value = '{{family.hID}}' > {{family.hID}} </option>
             {% endfor %}
             </select><br>
-Movie title: <select class="form-control" name="title">
+>Movie title: <select class="form-control" name="title">
             {% for title in res_2%}
                 <option value = '{{title.title}}'> {{title.title}} </option>
             {% endfor %}
             </select><br>
-Rank:		 <select name="rank">
+>Rank:		 <select name="rank">
 			    <option> 1 </option>
 			    <option> 2 </option>
                 <option> 3 </option>
                 <option> 4 </option>
                 <option> 5 </option>
 			 </select><br>
- <input type="submit"><br>
+ <input type="submit" name="form1"><br>
+    <h2>Genre statistics</h2>
+ >Genre:           <select class="form-control" name="genre">
+            {% for genre in res_3%}
+                <option value = '{{genre.genre}}'> {{genre.genre}} </option>
+            {% endfor %}
+             </select><br>
+ >Min ranks:          <input type="number" min = "0" step="1" NAME="min_ranks" SIZE="25"><br>
+     <input type="submit" name = "form2"><br>
 </center>
 </form>
+<center>
+{% if res_4 %}
+<table border="5" width="60%">
+    <th>Title</th>
+    <th>Average</th>
+        {% for title in res_4%}
+            <tr>
+            <td>{{title.title}} </td>
+            <td>{{title.avgRank}} </td>
+            </tr>
+        {% endfor %}
+    </table><br>
+{% endif %}
+</center>
+<br>
 </body>
 </html>
