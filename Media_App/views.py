@@ -12,6 +12,7 @@ def dictfetchall(cursor):
 def index(request):
     return render(request, 'index.html')
 
+
 def query_results(request):
     with connection.cursor() as cursor:
         cursor.execute("""SELECT  g.genre, min(p.title) as movieTitle, g.maxDuration
@@ -37,6 +38,7 @@ def query_results(request):
                             ORDER BY title""")
         sql_res3 = dictfetchall(cursor)
     return render(request, 'query_results.html', {'sql_res_1': sql_res1, 'sql_res_2': sql_res2, 'sql_res_3': sql_res3})
+
 
 def rankings(request):
     with connection.cursor() as cursor:
@@ -103,6 +105,139 @@ def rankings(request):
 
     return render(request, 'rankings.html', {'res_1': res1, 'res_2': res2, 'res_3': res3})
 
-def records_management(request):
-    return render(request, 'records_management.html')
 
+def records_management(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""SELECT c.hID, (c.num + p.num) as amount
+                            FROM numOfCurrent c, numOfPast p
+                            WHERE c.hID = p.hID
+                            ORDER BY amount desc, c.hID""")
+        res = dictfetchall(cursor)
+    res = res[0:3]
+
+    if request.method == 'POST' and 'form1' in request.POST:
+        requested_hid = request.POST["hID"]
+        movie_title = request.POST["title"]
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT DISTINCT hID
+                                FROM Households""")
+            families = dictfetchall(cursor)
+        flag = False
+        for line in families:
+            if str(line['hID']) == requested_hid:
+                flag = True
+                break
+        if not flag:
+            error = "Error. Not registered client!"
+            return render(request, 'records_management.html', {'error': error, 'res': res})
+        requested_hid = int(requested_hid)
+
+        flag = False
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT DISTINCT title
+                                FROM Programs""")
+            titles = dictfetchall(cursor)
+        for line in titles:
+            if line['title'] == movie_title:
+                flag = True
+                break
+        if not flag:
+            error = "Request denied. No such film in the library!"
+            return render(request, 'records_management.html', {'error': error, 'res': res})
+
+        flag = False
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT count(*) as numOfPrograms
+                                FROM RecordOrders
+                                WHERE hID = %s""", [requested_hid])
+            num_orders = dictfetchall(cursor)
+        if num_orders[0]['numOfPrograms'] >= 3:
+            error = "Request denied. Orders are limited to three items!"
+            return render(request, 'records_management.html', {'error': error, 'res': res})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT hID
+                                FROM RecordOrders ro
+                                WHERE ro.title = %s""", [movie_title])
+            ordered = dictfetchall(cursor)
+        if len(ordered) != 0:
+            if ordered[0]['hID'] != requested_hid:
+                error = "Request denied. Record is currently in use!"
+                return render(request, 'records_management.html', {'error': error, 'res': res})
+            if ordered[0]['hID'] == requested_hid:
+                error = "Request denied. You are currently in possession of this record!"
+                return render(request, 'records_management.html', {'error': error, 'res': res})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT hID
+                                FROM RecordReturns ro
+                                WHERE ro.title = %s and ro.hID = %s""", [movie_title, requested_hid])
+            ordered = dictfetchall(cursor)
+        if len(ordered) != 0:
+            error = "Request denied. You already ordered this record in the past!"
+            return render(request, 'records_management.html', {'error': error, 'res': res})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT hID
+                                FROM Households h, Programs p
+                                WHERE (h.hID = %s and h.ChildrenNum > 0 )and p.title = %s 
+                                and (p.genre = 'Adults only' or p.genre = 'Reality')""", [requested_hid, movie_title])
+            check = dictfetchall(cursor)
+        if len(check) != 0:
+            error = "Request denied. Film is not suitable for families with children!"
+            return render(request, 'records_management.html', {'error': error, 'res': res})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""INSERT INTO RecordOrders
+                               VALUES (%s,%s)""", [movie_title, requested_hid])
+
+    if request.method == 'POST' and 'form2' in request.POST:
+        requested_hid = request.POST["hID2"]
+        movie_title = request.POST["title2"]
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT DISTINCT hID
+                                FROM Households""")
+            families = dictfetchall(cursor)
+        flag = False
+        for line in families:
+            if str(line['hID']) == requested_hid:
+                flag = True
+                break
+        if not flag:
+            error = "Error. Not registered client!"
+            return render(request, 'records_management.html', {'error2': error, 'res': res})
+        requested_hid = int(requested_hid)
+
+        flag = False
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT DISTINCT title
+                                FROM Programs""")
+            titles = dictfetchall(cursor)
+        for line in titles:
+            if line['title'] == movie_title:
+                flag = True
+                break
+        if not flag:
+            error = "Request denied. No such film in the library!"
+            return render(request, 'records_management.html', {'error2': error, 'res': res})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT hID
+                                FROM RecordOrders
+                                WHERE hID = %s and title = %s""", [requested_hid, movie_title])
+            exists = dictfetchall(cursor)
+        if len(exists) == 0:
+            error = "Request denied. You are not in possession of this film!"
+            return render(request, 'records_management.html', {'error2': error, 'res': res})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""DELETE FROM RecordOrders
+                               WHERE title = %s and hID = %s""", [movie_title, requested_hid])
+
+        with connection.cursor() as cursor:
+            cursor.execute("""INSERT INTO RecordReturns
+                               VALUES (%s,%s)""", [movie_title, requested_hid])
+
+    return render(request, 'records_management.html', {'res': res})
